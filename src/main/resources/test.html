@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>API Consumption Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Create items and display the number of items created
+            $("#createItemsForm").submit(function (event) {
+                event.preventDefault();
+                var items = $("#itemsInput").val().split(",");
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost:8080/inventory",
+                    contentType: "application/json",
+                    data: JSON.stringify(items),
+                    success: function (response) {
+                        $("#itemsCreated").text("Items created: " + response);
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            // Create an order and display the created orders
+            $("#createOrderForm").submit(function (event) {
+                event.preventDefault();
+                var customer = {
+                    name: $("#customerNameInput").val(),
+                    email: $("#customerEmailInput").val(),
+                    number: $("#customerNumberInput").val()
+                };
+                var items = $("#orderItemsInput").val();
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost:8080/order",
+                    contentType: "application/json",
+                    data: JSON.stringify({customer: customer, items: items}),
+                    success: function (response) {
+                        $("#ordersList").empty();
+                        $.each(response, function (index, order) {
+                            var orderInfo = "<li>Order ID: " + order.id + ", Customer: " + order.customer.name + ", Total Cost: " + order.totalCost + "</li>";
+                            $("#ordersList").append(orderInfo);
+                        });
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            // Calculate total cost for a customer and display the result
+            $("#calculateTotalForm").submit(function (event) {
+                event.preventDefault();
+                var customerNumber = $("#customerNumberInput").val();
+                $.ajax({
+                    type: "GET",
+                    url: "http://localhost:8080/total/" + customerNumber,
+                    success: function (response) {
+                        $("#totalCost").text("Total Cost: " + response);
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<h2>Create Items</h2>
+<form id="createItemsForm">
+    <label for="itemsInput">Items (comma-separated):</label>
+    <input type="text" id="itemsInput" required>
+    <button type="submit">Create Items</button>
+</form>
+<p id="itemsCreated"></p>
+
+<h2>Create Order</h2>
+<form id="createOrderForm">
+    <label for="customerNameInput">Customer Name:</label>
+    <input type="text" id="customerNameInput" required>
+    <label for="customerEmailInput">Customer Email:</label>
+    <input type="email" id="customerEmailInput" required>
+    <label for="customerNumberInput">Customer Number:</label>
+    <input type="number" id="customerNumberInput" required>
+    <label for="orderItemsInput">Order Items (comma-separated):</label>
+    <input type="text" id="orderItemsInput" required>
+    <button type="submit">Create Order</button>
+</form>
+<ul id="ordersList"></ul>
+
+<h2>Calculate Total Cost for Customer</h2>
+<form id="calculateTotalForm">
+    <label for="customerNumberInput">Customer Number:</label>
+    <input type="number" id="customerNumberInput" required>
+    <button type="submit">Calculate Total Cost</button>
+</form>
+<p id="totalCost"></p>
+</body>
+</html>
